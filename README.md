@@ -1,2 +1,2 @@
 # SubtitleTools
-SubtitleTools
+SubtitleTools CLI

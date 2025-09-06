@@ -52,3 +52,11 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# JetBrains
+.idea/
+*.sln.DotSettings.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
