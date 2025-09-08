@@ -3,12 +3,12 @@ on:
   push:
     tags:
       - 'v*.*.*'
-    workflow_dispatch:
-      inputs:
-        version:
-          description: 'Release version (e.g., v1.0.0)'
-          required: true
-          default: 'v1.0.0'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
 
 jobs:
   build:
@@ -37,13 +37,21 @@ jobs:
           -p:PublishTrimmed=true \
           -o publish/${{ matrix.runtime }}
 
+      - name: Set version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          fi
+
       - name: Package files
         run: |
           cd publish/${{ matrix.runtime }}
           if [[ "${{ matrix.runtime }}" == "win-x64" ]]; then
-            zip -r ../../SubtitleTools-${{ matrix.runtime }}.zip .
+            zip -r ../../SubtitleTools-${{ env.VERSION }}-${{ matrix.runtime }}.zip .
           else
-            tar -czf ../../SubtitleTools-${{ matrix.runtime }}.tar.gz .
+            tar -czf ../../SubtitleTools-${{ env.VERSION }}-${{ matrix.runtime }}.tar.gz .
           fi
 
       - name: Upload artifacts
@@ -82,6 +90,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
           files: release-files/*
           generate_release_notes: true
         env:
