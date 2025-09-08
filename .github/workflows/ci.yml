@@ -1,40 +1,57 @@
-name: CI / .NET
+name: Build & Test (.NET)
 # Runs build and tests for all pushes and pull requests on main
+
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ]     # Trigger on pushes to main branch
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main" ]     # Trigger on PRs targeting main branch
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest         # Use latest Ubuntu runner
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        
+        uses: actions/checkout@v4  # Checkout repository
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'  # Install .NET 8 SDK
+
+      - name: Restore dependencies
+        run: dotnet restore        # Restore NuGet packages
+        working-directory: ./src
+
+      - name: Build project
+        run: dotnet build --no-restore --configuration Release
+        working-directory: ./src   # Build in Release mode
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build                   # Run only if build succeeds
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4  # Checkout repository again
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-          
+
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore        # Needed since jobs run in a fresh environment
         working-directory: ./src
-        
-      - name: Build project
-        run: dotnet build --no-restore --configuration Release
-        working-directory: ./src
-        
+
       - name: Run tests with coverage
         run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
         working-directory: ./src
-        
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: ./src/TestResults/**/coverage.cobertura.xml
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
+          fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

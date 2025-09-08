@@ -1,9 +1,12 @@
-name: Release / Build & Release
+name: Build & Release (.NET)
+# Builds and packages the app for multiple platforms and publishes a GitHub Release
+# Triggered automatically on version tags (v*.*.*) or manually with workflow_dispatch
+
 on:
   push:
     tags:
-      - 'v*.*.*'
-  workflow_dispatch:
+      - 'v*.*.*'     # Trigger on semantic version tags (e.g., v1.0.0)
+  workflow_dispatch: # Allow manual trigger
     inputs:
       version:
         description: 'Release version (e.g., v1.0.0)'
@@ -15,23 +18,24 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        runtime: [ win-x64, linux-x64, osx-x64, osx-arm64 ]
+        runtime: [ win-x64, linux-x64, osx-x64, osx-arm64 ]  # Build for multiple OS runtimes
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # Pull repo code
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '8.0.x'  # Install .NET 8 SDK
 
       - name: Restore dependencies
         run: dotnet restore
-        working-directory: ./src
+        working-directory: ./src   # Restore NuGet packages
 
       - name: Publish self-contained app
-        run: dotnet publish SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ../../publish/${{ matrix.runtime }}
-        working-directory: ./src/SubtitleTools
+        run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ../publish/${{ matrix.runtime }}
+        working-directory: ./src
+        # Publishes app as a self-contained, single-file executable per runtime
 
       - name: Set version
         run: |
@@ -39,11 +43,11 @@ jobs:
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          fi
+        # Determines release version from manual input or Git tag
 
       - name: Package files
         run: |
-          # Set version if not already set
+          # Use release version from input or tag
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             VERSION="${{ github.event.inputs.version }}"
           else
@@ -56,20 +60,21 @@ jobs:
           else
             tar -czf ../../SubtitleTools-${VERSION}-${{ matrix.runtime }}.tar.gz .
           fi
+        # Packages binaries as .zip (Windows) or .tar.gz (Linux/macOS)
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.runtime }}
+          name: ${{ matrix.runtime }}  # Artifact name = runtime
           path: |
             *.zip
-            *.tar.gz
+            *.tar.gz                   # Upload packaged files for release
 
   release:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build    # Wait for build job to finish
     permissions:
-      contents: write
+      contents: write   # Allow publishing a release
     steps:
       - name: Set version for release
         run: |
@@ -77,25 +82,26 @@ jobs:
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          fi
+        # Ensures correct release version is set
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ./artifacts
+          path: ./artifacts   # Download artifacts from build job
 
       - name: Flatten artifacts
         run: |
           mkdir -p release-files
           find ./artifacts -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec cp {} release-files/ \;
           ls -la release-files/
+        # Collects all build outputs into a single folder
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.VERSION }}
-          name: Release ${{ env.VERSION }}
-          files: release-files/*
-          generate_release_notes: true
+          tag_name: ${{ env.VERSION }}             # Release tag
+          name: SubtitleTools ${{ env.VERSION }}   # Release title
+          files: release-files/*                   # Attach packaged binaries
+          generate_release_notes: true             # Auto-generate release notes
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Auth token for release
