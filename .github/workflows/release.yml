@@ -36,14 +36,15 @@ jobs:
         run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ../publish/${{ matrix.runtime }}
         working-directory: ./src
 
-      - name: Set version
+      - name: Set version                   # Set version
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          fi
 
-      - name: Package files
+      - name: Package files                 # Packages binaries as .zip (Windows) or .tar.gz (Linux/macOS)
         run: |
           # Use release version from input or tag
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
@@ -59,7 +60,7 @@ jobs:
             tar -czf ../../SubtitleTools-${VERSION}-${{ matrix.runtime }}.tar.gz .
           fi
 
-      - name: Upload artifacts
+      - name: Upload artifacts              # Upload packaged files for release
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.runtime }}
@@ -73,19 +74,19 @@ jobs:
     permissions:
       contents: write   # Allow publishing a release
     steps:
-      - name: Set version for release
+      - name: Set version for release                   # Set version for releaase - from manual input or Git tag
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
-      - name: Download all artifacts
+      - name: Download all artifacts                    # Download artifacts from build job
         uses: actions/download-artifact@v4
         with:
-          path: ./artifacts   # Download artifacts from build job
+          path: ./artifacts
 
-      - name: Flatten artifacts
+      - name: Flatten artifacts                         # Collects all build outputs into a single folder
         run: |
           mkdir -p release-files
           find ./artifacts -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec cp {} release-files/ \;
