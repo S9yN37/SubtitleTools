@@ -1,7 +1,7 @@
 # SubtitleTools CLI
 
 A command-line tool for managing and synchronizing subtitle files.
-[![codecov](https://codecov.io/gh/YourUsername/SubtitleTools/branch/main/graph/badge.svg)](https://codecov.io/gh/YourUsername/SubtitleTools)
+[![codecov](https://codecov.io/gh/S9yN37/SubtitleTools/branch/main/graph/badge.svg)](https://codecov.io/gh/S9yN37/SubtitleTools)
 ---
 ![screenshot](.assets/SubtitleTools.png)
 
