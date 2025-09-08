@@ -1,5 +1,5 @@
 name: Release / Build & Release
-# Triggered when pushing a tag like v1.0.0
+# Triggered when pushing a tag like v1.*.*
 on:
   push:
     tags:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        runtime: [win-x64, linux-x64, osx-x64, osx-arm64]
+        runtime: [ win-x64, linux-x64, osx-x64, osx-arm64 ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -45,47 +45,83 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.runtime }}
-          path: SubtitleTools-*.{zip,tar.gz}
+          path: |
+            *.zip
+            *.tar.gz
 
   linux-packages:
     runs-on: ubuntu-latest
     needs: build
-    if: matrix.runtime != 'win-x64' && matrix.runtime != 'osx-x64' && matrix.runtime != 'osx-arm64'
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download Linux build
         uses: actions/download-artifact@v4
         with:
           name: linux-x64
           path: ./linux-publish
 
+      - name: Extract Linux build
+        run: |
+          cd linux-publish
+          tar -xzf SubtitleTools-linux-x64.tar.gz
+
       - name: Install fpm
-        run: sudo apt-get update && sudo apt-get install -y ruby ruby-dev rubygems build-essential && sudo gem install --no-document fpm
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev rubygems build-essential
+          sudo gem install --no-document fpm
 
       - name: Build .deb and .rpm packages
         run: |
           mkdir -p pkg/usr/local/bin
           cp linux-publish/SubtitleTools pkg/usr/local/bin/subtitletools
-          fpm -s dir -t deb -n subtitletools -v ${GITHUB_REF_NAME#v} --prefix=/ -C pkg .
-          fpm -s dir -t rpm -n subtitletools -v ${GITHUB_REF_NAME#v} --prefix=/ -C pkg .
+          chmod +x pkg/usr/local/bin/subtitletools
+          
+          # Create .deb package
+          fpm -s dir -t deb -n subtitletools -v ${GITHUB_REF_NAME#v} \
+              --description "Subtitle manipulation tools" \
+              --maintainer "your-email@example.com" \
+              --prefix=/ -C pkg .
+          
+          # Create .rpm package
+          fpm -s dir -t rpm -n subtitletools -v ${GITHUB_REF_NAME#v} \
+              --description "Subtitle manipulation tools" \
+              --maintainer "your-email@example.com" \
+              --prefix=/ -C pkg .
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-packages
-          path: "*.deb\n*.rpm"
+          path: |
+            *.deb
+            *.rpm
 
   release:
     runs-on: ubuntu-latest
-    needs: [build, linux-packages]
+    needs: [ build, linux-packages ]
+    permissions:
+      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
 
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release-files
+          find ./artifacts -type f \( -name "*.zip" -o -name "*.tar.gz" -o -name "*.deb" -o -name "*.rpm" \) -exec cp {} release-files/ \;
+          ls -la release-files/
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./artifacts/**/*
+          files: release-files/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
