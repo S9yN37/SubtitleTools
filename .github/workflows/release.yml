@@ -80,6 +80,7 @@ jobs:
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          fi
 
       - name: Download all artifacts                    # Download artifacts from build job
         uses: actions/download-artifact@v4
