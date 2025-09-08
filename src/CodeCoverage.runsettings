@@ -6,7 +6,7 @@
         <Configuration>
           <Exclude>
             <Files>
-              <File>.*SubtitleTools[\\/]+Program\.cs</File>
+              <File>.*src[\\/]+.*[\\/]+Program\.cs</File>
             </Files>
           </Exclude>
         </Configuration>
