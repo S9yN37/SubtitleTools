@@ -3,12 +3,12 @@ name: Build & Test (.NET)
 
 on:
   push:
-    branches: [ "main" ]     # Trigger on pushes to main branch
+    branches: [ "main" ]           # Trigger on pushes to main branch
   pull_request:
-    branches: [ "main" ]     # Trigger on PRs targeting main branch
+    branches: [ "main" ]           # Trigger on PRs targeting main branch
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest         # Use latest Ubuntu runner
     steps:
       - name: Checkout repository
@@ -21,37 +21,21 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore        # Restore NuGet packages
-        working-directory: ./src
+        working-directory: ./src   # Run inside the src folder
 
       - name: Build project
         run: dotnet build --no-restore --configuration Release
-        working-directory: ./src   # Build in Release mode
-
-  test:
-    runs-on: ubuntu-latest
-    needs: build                   # Run only if build succeeds
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4  # Checkout repository again
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore        # Needed since jobs run in a fresh environment
-        working-directory: ./src
+        working-directory: ./src   # Build in Release mode, skip restore
 
       - name: Run tests with coverage
         run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
-        working-directory: ./src
+        working-directory: ./src   # Run unit tests and collect coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./src/TestResults/**/coverage.cobertura.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          files: ./src/TestResults/**/coverage.cobertura.xml  # Coverage report path
+          token: ${{ secrets.CODECOV_TOKEN }}                 # Auth token from repo secrets
+          fail_ci_if_error: true                              # Fail if Codecov upload fails
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

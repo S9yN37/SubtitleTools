@@ -5,8 +5,8 @@ name: Build & Release (.NET)
 on:
   push:
     tags:
-      - 'v*.*.*'     # Trigger on semantic version tags (e.g., v1.0.0)
-  workflow_dispatch: # Allow manual trigger
+      - 'v*.*.*'                             # Trigger on semantic version tags (e.g., v1.0.0)
+  workflow_dispatch:                         # Allow manual trigger
     inputs:
       version:
         description: 'Release version (e.g., v1.0.0)'
@@ -20,22 +20,21 @@ jobs:
       matrix:
         runtime: [ win-x64, linux-x64, osx-x64, osx-arm64 ]  # Build for multiple OS runtimes
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4  # Pull repo code
+      - name: Checkout repository           # Pull repo code
+        uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET                    # Install .NET 8 SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'  # Install .NET 8 SDK
+          dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
-        working-directory: ./src   # Restore NuGet packages
+      - name: Restore dependencies          # Restore NuGet packages
+        run: dotnet restore       
+        working-directory: ./src 
 
-      - name: Publish self-contained app
+      - name: Publish self-contained app    # Publishes app as a self-contained, single-file executable per runtime
         run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ../publish/${{ matrix.runtime }}
         working-directory: ./src
-        # Publishes app as a self-contained, single-file executable per runtime
 
       - name: Set version
         run: |
@@ -43,7 +42,6 @@ jobs:
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-        # Determines release version from manual input or Git tag
 
       - name: Package files
         run: |
@@ -60,19 +58,18 @@ jobs:
           else
             tar -czf ../../SubtitleTools-${VERSION}-${{ matrix.runtime }}.tar.gz .
           fi
-        # Packages binaries as .zip (Windows) or .tar.gz (Linux/macOS)
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.runtime }}  # Artifact name = runtime
+          name: ${{ matrix.runtime }}
           path: |
             *.zip
-            *.tar.gz                   # Upload packaged files for release
+            *.tar.gz
 
   release:
     runs-on: ubuntu-latest
-    needs: build    # Wait for build job to finish
+    needs: build        # Wait for build job to finish
     permissions:
       contents: write   # Allow publishing a release
     steps:
@@ -82,7 +79,6 @@ jobs:
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-        # Ensures correct release version is set
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -94,7 +90,6 @@ jobs:
           mkdir -p release-files
           find ./artifacts -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec cp {} release-files/ \;
           ls -la release-files/
-        # Collects all build outputs into a single folder
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
