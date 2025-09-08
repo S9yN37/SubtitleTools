@@ -9,6 +9,10 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src   # set working directory to src
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
