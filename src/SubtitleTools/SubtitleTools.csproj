@@ -8,10 +8,6 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
     
-    <PropertyGroup>
-        <CoverletExcludeByFile>**/Program.cs</CoverletExcludeByFile>
-    </PropertyGroup>
-    
     <ItemGroup>
         <PackageReference Include="CliFx"/>
         <PackageReference Include="Microsoft.Extensions.Hosting"/>
