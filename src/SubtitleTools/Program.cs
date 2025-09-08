@@ -1,27 +1,20 @@
-﻿await Run(args);
-return;
+﻿var services = new ServiceCollection();
 
-[ExcludeFromCodeCoverage]
-static async Task Run(string[] args)
-{
-    var services = new ServiceCollection();
+var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+services.Configure<Settings>(configuration.GetSection("SubtitleTools"));
+services.AddSingleton(sp => sp.GetRequiredService<IOptions<Settings>>().Value);
 
-    var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-    services.Configure<Settings>(configuration.GetSection("SubtitleTools"));
-    services.AddSingleton(sp => sp.GetRequiredService<IOptions<Settings>>().Value);
+services.AddSubtitleToolsServices();
+services.AddSubtitleToolsFormatServices();
+services.AddSubtitleToolsCommands();
 
-    services.AddSubtitleToolsServices();
-    services.AddSubtitleToolsFormatServices();
-    services.AddSubtitleToolsCommands();
+var serviceProvider = services.BuildServiceProvider();
 
-    var serviceProvider = services.BuildServiceProvider();
+var app = new CliApplicationBuilder()
+    .AddCommandsFromThisAssembly()
+    .UseTypeActivator(type => serviceProvider.GetRequiredService(type))
+    .SetExecutableName("SubtitleTools")
+    .SetVersion("1.0.0")
+    .Build();
 
-    var app = new CliApplicationBuilder()
-        .AddCommandsFromThisAssembly()
-        .UseTypeActivator(type => serviceProvider.GetRequiredService(type))
-        .SetExecutableName("SubtitleTools")
-        .SetVersion("1.0.0")
-        .Build();
-
-    await app.RunAsync(args);
-}
+await app.RunAsync(args);
