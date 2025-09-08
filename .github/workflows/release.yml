@@ -30,9 +30,9 @@ jobs:
         working-directory: ./src
 
       - name: Publish self-contained app
-        run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.runtime }}
-        working-directory: ./src
-        
+        run: dotnet publish SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ../../publish/${{ matrix.runtime }}
+        working-directory: ./src/SubtitleTools
+
       - name: Set version
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
