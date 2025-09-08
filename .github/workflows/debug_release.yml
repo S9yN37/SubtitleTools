@@ -30,6 +30,7 @@ jobs:
 
       - name: Test restore
         run: dotnet restore
+        working-directory: ./src
 
       - name: Test build for Windows
         run: dotnet publish ./SubtitleTools/SubtitleTools.csproj \
@@ -39,3 +40,4 @@ jobs:
           -p:PublishSingleFile=true \
           -p:PublishTrimmed=true \
           -o publish/win-x64
+        working-directory: ./src

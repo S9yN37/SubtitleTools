@@ -36,6 +36,7 @@ jobs:
           -p:PublishSingleFile=true \
           -p:PublishTrimmed=true \
           -o publish/${{ matrix.runtime }}
+        working-directory: ./src
 
       - name: Set version
         run: |
@@ -47,11 +48,18 @@ jobs:
 
       - name: Package files
         run: |
+          # Set version if not already set
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME}"
+          fi
+          
           cd publish/${{ matrix.runtime }}
           if [[ "${{ matrix.runtime }}" == "win-x64" ]]; then
-            zip -r ../../SubtitleTools-${{ env.VERSION }}-${{ matrix.runtime }}.zip .
+            zip -r ../../SubtitleTools-${VERSION}-${{ matrix.runtime }}.zip .
           else
-            tar -czf ../../SubtitleTools-${{ env.VERSION }}-${{ matrix.runtime }}.tar.gz .
+            tar -czf ../../SubtitleTools-${VERSION}-${{ matrix.runtime }}.tar.gz .
           fi
 
       - name: Upload artifacts
