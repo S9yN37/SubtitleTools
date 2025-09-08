@@ -1,20 +1,29 @@
-﻿var services = new ServiceCollection();
+﻿namespace SubtitleTools;
 
-var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-services.Configure<Settings>(configuration.GetSection("SubtitleTools"));
-services.AddSingleton(sp => sp.GetRequiredService<IOptions<Settings>>().Value);
+[ExcludeFromCodeCoverage]
+public static class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var services = new ServiceCollection();
 
-services.AddSubtitleToolsServices();
-services.AddSubtitleToolsFormatServices();
-services.AddSubtitleToolsCommands();
+        var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        services.Configure<Settings>(configuration.GetSection("SubtitleTools"));
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<Settings>>().Value);
 
-var serviceProvider = services.BuildServiceProvider();
+        services.AddSubtitleToolsServices();
+        services.AddSubtitleToolsFormatServices();
+        services.AddSubtitleToolsCommands();
 
-var app = new CliApplicationBuilder()
-    .AddCommandsFromThisAssembly()
-    .UseTypeActivator(type => serviceProvider.GetRequiredService(type))
-    .SetExecutableName("SubtitleTools")
-    .SetVersion("1.0.0")
-    .Build();
+        var serviceProvider = services.BuildServiceProvider();
 
-await app.RunAsync(args);
+        var app = new CliApplicationBuilder()
+            .AddCommandsFromThisAssembly()
+            .UseTypeActivator(type => serviceProvider.GetRequiredService(type))
+            .SetExecutableName("SubtitleTools")
+            .SetVersion("1.0.0")
+            .Build();
+
+        await app.RunAsync(args);
+    }
+}
