@@ -52,16 +52,14 @@ jobs:
         run: |
           # Update version
           sed -i "s/^  version \".*\"/  version \"${{ steps.release.outputs.tag }}\"/" Formula/subtitletools.rb
-
-          # Update Intel (x64) URL + SHA
-          sed -i -E "s#(osx-x64\.tar\.gz\"\n\s*sha256 \")[^\"]*#\1${sha256_x64}#" Formula/subtitletools.rb
-          sed -i -E "s#(osx-x64\.tar\.gz)\"#\1#" Formula/subtitletools.rb
+          
+          # Update Intel (x64) URL and sha
           sed -i -E "s#https://github.com/.*/SubtitleTools-v[0-9.]+-osx-x64\.tar\.gz#${{ steps.release.outputs.url_x64 }}#" Formula/subtitletools.rb
-
-          # Update ARM (arm64) URL + SHA
-          sed -i -E "s#(osx-arm64\.tar\.gz\"\n\s*sha256 \")[^\"]*#\1${sha256_arm}#" Formula/subtitletools.rb
-          sed -i -E "s#(osx-arm64\.tar\.gz)\"#\1#" Formula/subtitletools.rb
+          sed -i -E "/on_intel do/,/end/{s/sha256 \"[^\"]*\"/sha256 \"${sha256_x64}\"/}" Formula/subtitletools.rb
+          
+          # Update ARM (arm64) URL and sha  
           sed -i -E "s#https://github.com/.*/SubtitleTools-v[0-9.]+-osx-arm64\.tar\.gz#${{ steps.release.outputs.url_arm }}#" Formula/subtitletools.rb
+          sed -i -E "/on_arm do/,/end/{s/sha256 \"[^\"]*\"/sha256 \"${sha256_arm}\"/}" Formula/subtitletools.rb
 
       - name: Commit and push changes
         run: |
