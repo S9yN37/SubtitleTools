@@ -100,5 +100,7 @@ jobs:
           name: SubtitleTools ${{ env.VERSION }}   # Release title
           files: release-files/*                   # Attach packaged binaries
           generate_release_notes: true             # Auto-generate release notes
+          draft: false                             # Whether the release should be a draft (unpublished). false = published immediately
+          prerelease: false                        # Whether the release is a pre-release (e.g., beta/RC). false = normal release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Auth token for release
