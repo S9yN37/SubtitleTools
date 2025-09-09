@@ -2,7 +2,7 @@ name: Update Homebrew Formula
 
 on:
   release:
-    types: [published]
+    types: [ published ]
   workflow_dispatch:
 
 jobs:
@@ -21,12 +21,22 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const r = context.payload.release;
-            return {
-              tag: r.tag_name,
-              url_x64: r.assets.find(a => a.name.includes("osx-x64")).browser_download_url,
-              url_arm: r.assets.find(a => a.name.includes("osx-arm64")).browser_download_url
+            let release;
+            if (context.payload.release) {
+              // Triggered by "release"
+              release = context.payload.release;
+            } else {
+              // Triggered by "workflow_dispatch"
+              const latest = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              release = latest.data;
             }
+
+            core.setOutput("tag", release.tag_name);
+            core.setOutput("url_x64", release.assets.find(a => a.name.includes("osx-x64")).browser_download_url);
+            core.setOutput("url_arm", release.assets.find(a => a.name.includes("osx-arm64")).browser_download_url);
 
       - name: Download & compute sha256 (x64)
         run: |
