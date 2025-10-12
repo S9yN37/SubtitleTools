@@ -39,9 +39,16 @@ jobs:
       - name: Ad-hoc sign macOS binaries
         if: startsWith(matrix.runtime, 'osx')
         run: |
-          for f in ./publish/${{ matrix.runtime }}/*; do
-            echo "Signing $f"
-            codesign --force --deep --sign - "$f"
+          echo "Looking for executables in ./publish/${{ matrix.runtime }}/"
+          find "./publish/${{ matrix.runtime }}" -type f ! -name '*.dll' ! -name '*.pdb' ! -name '*.xml' ! -name '*.config' | while read -r f; do
+            if file "$f" | grep -q "Mach-O"; then
+              echo "Signing executable: $f"
+              codesign --force --deep --sign - "$f"
+              echo "Verifying signature:"
+              codesign -dv --verbose=2 "$f" || true
+            else
+              echo "Skipping non-executable: $f"
+            fi
           done
           
       - name: Set version                   # Set version
