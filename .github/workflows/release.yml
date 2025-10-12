@@ -15,10 +15,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     strategy:
       matrix:
-        runtime: [ win-x64, linux-x64, osx-x64, osx-arm64 ]  # Build for multiple OS runtimes
+        runtime: [ osx-arm64, osx-x64, linux-x64, win-x64 ]  # Build for multiple OS runtimes
     steps:
       - name: Checkout repository           # Pull repo code
         uses: actions/checkout@v4
@@ -36,6 +36,14 @@ jobs:
         run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ../publish/${{ matrix.runtime }}
         working-directory: ./src
 
+      - name: Ad-hoc sign macOS binaries
+        if: startsWith(matrix.runtime, 'osx')
+        run: |
+          for f in ./publish/${{ matrix.runtime }}/*; do
+            echo "Signing $f"
+            codesign --force --deep --sign - "$f"
+          done
+          
       - name: Set version                   # Set version
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
