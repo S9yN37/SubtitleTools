@@ -11,6 +11,7 @@
     <ItemGroup>
         <PackageReference Include="CliFx"/>
         <PackageReference Include="Microsoft.Extensions.Hosting"/>
+        <PackageReference Include="UTF.Unknown" />
     </ItemGroup>
 
     <ItemGroup>

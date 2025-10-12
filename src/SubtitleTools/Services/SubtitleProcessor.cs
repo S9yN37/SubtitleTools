@@ -18,7 +18,7 @@ public class SubtitleProcessor(
     public async Task Save(Subtitle subtitle, string? fileName = null)
     {
         if (_settings.AutoCreateBackup)
-            fileSystem.Copy(subtitle.OriginalFile, $"{DateTime.Now:yyMMddHHmmss}_{subtitle.OriginalFile}");
+            fileSystem.Backup(subtitle.OriginalFile);
 
         var parser = readerFactory.GetParser(subtitle.Extension);
         var file = string.IsNullOrEmpty(fileName) ? subtitle.OriginalFile : fileName;
@@ -40,7 +40,7 @@ public class SubtitleProcessor(
 
     public void Sync(Subtitle subtitle, double seconds)
     {
-        if (seconds == 0) return;
+        if (seconds < 0.001) return;
         foreach (var paragraph in subtitle.Paragraphs)
             paragraph.Sync(seconds);
     }
@@ -48,11 +48,14 @@ public class SubtitleProcessor(
     public void Sync(Subtitle subtitle, IReadOnlyList<Segment> segments)
     {
         if (segments.Count == 0) return;
-        var end = subtitle.Paragraphs.Last().End;
+        var end = subtitle.Paragraphs[^1].End;
         var ranges = CreateRanges(segments, end);
-        foreach (var range in ranges.Where(r => r.Offset != 0))
-        foreach (var paragraph in subtitle.Paragraphs.Where(p => p.Start >= range.From && p.End <= range.To))
-            paragraph.Sync(range.Offset);
+        foreach (var range in ranges)
+        {
+            if (range is { Offset: 0 }) continue;
+            foreach (var paragraph in subtitle.Paragraphs.Where(p => p.Start >= range.From && p.End <= range.To))
+                paragraph.Sync(range.Offset);
+        }
     }
 
     public void Sync(Subtitle subtitle, VisualPoint first, VisualPoint last)

@@ -67,7 +67,7 @@ public class SynchronizePartialCommandTests
         await command.ExecuteAsync(_console);
 
         // Assert
-        _fileSystem.Received(1).Copy(command.FileName, Arg.Is<string>(f => f.Contains(command.FileName)));
+        _fileSystem.Received(1).Backup(command.FileName);
         var expectedLines = new[] { "1", "00:00:04,000 --> 00:00:05,000", "Subtitle Line", "" };
         await _fileSystem.Received(1).WriteLines(command.FileName, Arg.Is<IReadOnlyCollection<string>>(c => c.SequenceEqual(expectedLines)));
         var output = _console.ReadOutputString();
@@ -101,7 +101,7 @@ public class SynchronizePartialCommandTests
         await command.ExecuteAsync(_console);
 
         // Assert
-        _fileSystem.Received(1).Copy(command.FileName, Arg.Is<string>(f => f.Contains(command.FileName)));
+        _fileSystem.Received(1).Backup(command.FileName);
         var expectedLines = new[]
         {
             "1", "00:00:01,000 --> 00:00:02,000", "Subtitle Line 1", "",

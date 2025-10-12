@@ -21,7 +21,7 @@ public static class Program
             .AddCommandsFromThisAssembly()
             .UseTypeActivator(type => serviceProvider.GetRequiredService(type))
             .SetExecutableName("SubtitleTools")
-            .SetVersion("1.0.0")
+            .SetVersion("1.1.0")
             .Build();
 
         await app.RunAsync(args);

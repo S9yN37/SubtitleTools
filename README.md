@@ -15,6 +15,9 @@ SubtitleTools -h
 # Get help for synchronize command:
 SubtitleTools s --help
 
+# Detect encoding:
+SubtitleTools de -f Subtitle.srt
+
 # Fix diacritics in subtitle files:
 SubtitleTools fd -f Subtitle.srt
 
@@ -52,6 +55,7 @@ SubtitleTools [command] [...]
 
 | Command | Description |
 |---------|-------------|
+| `de` | Detect Encoding |
 | `fd` | Fix Diacritics |
 | `s` | Synchronize |
 | `sp` | Synchronize Partial |
@@ -67,4 +71,4 @@ SubtitleTools [command] --help
 
 ## Version
 
-Current version: 1.0.0
+Current version: 1.1.0

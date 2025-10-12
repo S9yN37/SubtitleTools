@@ -173,7 +173,7 @@ public class VisualSyncCommandTests
         await command.ExecuteAsync(_console);
 
         // Assert
-        _fileSystem.Received(1).Copy(command.FileName, Arg.Is<string>(f => f.Contains(command.FileName)));
+        _fileSystem.Received(1).Backup(command.FileName);
         var expectedLines = new[]
         {
             "1", "00:00:01,300 --> 00:00:02,300", "Subtitle Line 1", "",

@@ -7,10 +7,12 @@ public class FixDiacriticsCommand(IFileSystem fileSystem, IOptions<Settings> opt
     {
         { "Ã", "Ă" },
         { "ã", "ă" },
+        { "Ä", "Ă" },
+        { "ä", "ă" },
         //{ "", "Â" },
-        //{ "", "â" },
-        //{ "", "Î" },
-        //{ "", "î" }
+        //{ "â", "â" },
+        //{ "Î", "Î" },
+        //{ "î", "î" }
         { "ª", "Ș" },
         { "Ş", "Ș" },
         { "º", "ș" },
@@ -35,7 +37,7 @@ public class FixDiacriticsCommand(IFileSystem fileSystem, IOptions<Settings> opt
         }
 
         if (_settings.AutoCreateBackup)
-            fileSystem.Copy(FileName, $"{DateTime.Now:yyMMddHHmmss}_{FileName}");
+            fileSystem.Backup(FileName);
 
         var subtitle = await fileSystem.ReadContent(FileName);
 

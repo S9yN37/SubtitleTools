@@ -25,7 +25,7 @@ public class ServiceExtensionsTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(services, Has.Count.EqualTo(9), "Service count changed");
+            Assert.That(services, Has.Count.EqualTo(10), "Service count changed");
 
             Assert.That(scope.ServiceProvider.GetRequiredService<IOptions<Settings>>(), Is.InstanceOf<IOptions<Settings>>());
 
@@ -40,6 +40,7 @@ public class ServiceExtensionsTests
             // SubtitleToolsCommands
             var commands = new[]
             {
+                typeof(DetectEncodingCommand),
                 typeof(FixDiacriticsCommand),
                 typeof(SynchronizeCommand),
                 typeof(SynchronizePartialCommand),

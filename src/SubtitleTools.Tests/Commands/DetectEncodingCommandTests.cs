@@ -1,11 +1,12 @@
+using System.Text;
+
 namespace SubtitleTools.Tests.Commands;
 
 [Category("Functional")]
-public class SynchronizeCommandTests
+public class DetectEncodingCommandTests
 {
     private FakeInMemoryConsole _console;
     private IFileSystem _fileSystem;
-    private ISubtitleProcessor _subtitleProcessor;
 
     [SetUp]
     public void Setup()
@@ -19,13 +20,7 @@ public class SynchronizeCommandTests
         _fileSystem = Substitute.For<IFileSystem>();
         services.AddScoped(_ => _fileSystem);
 
-        // Settings
-        var options = Substitute.For<IOptions<Settings>>();
-        options.Value.Returns(new Settings { AutoCreateBackup = true });
-        services.AddSingleton(options);
-
-        var provider = services.BuildServiceProvider();
-        _subtitleProcessor = provider.GetService<ISubtitleProcessor>()!;
+        services.BuildServiceProvider();
 
         _console = new FakeInMemoryConsole();
     }
@@ -41,7 +36,7 @@ public class SynchronizeCommandTests
     {
         // Arrange
         _fileSystem.FileExists("NotFound.srt").Returns(false);
-        var command = new SynchronizeCommand(_subtitleProcessor, _fileSystem) { FileName = "NotFound.srt", OffsetSeconds = 1 };
+        var command = new DetectEncodingCommand(_fileSystem) { FileName = "NotFound.srt" };
 
         // Act
         await command.ExecuteAsync(_console);
@@ -57,22 +52,15 @@ public class SynchronizeCommandTests
     {
         // Arrange
         _fileSystem.FileExists("Subtitle.srt").Returns(true);
-        _fileSystem.ReadLines("Subtitle.srt").Returns([
-            "1", "00:00:01,000 --> 00:00:02,000", "Subtitle Line", ""
-        ]);
-        var command = new SynchronizeCommand(_subtitleProcessor, _fileSystem) { FileName = "Subtitle.srt", OffsetSeconds = 1 };
+        _fileSystem.GetFileEncoding("Subtitle.srt").Returns(Encoding.UTF8);
+
+        var command = new DetectEncodingCommand(_fileSystem) { FileName = "Subtitle.srt" };
 
         // Act
         await command.ExecuteAsync(_console);
 
         // Assert
-        _fileSystem.Received(1).Backup(command.FileName);
-        var expectedLines = new[]
-        {
-            "1", "00:00:02,000 --> 00:00:03,000", "Subtitle Line", ""
-        };
-        await _fileSystem.Received(1).WriteLines(command.FileName, Arg.Is<IReadOnlyCollection<string>>(c => c.SequenceEqual(expectedLines)));
         var output = _console.ReadOutputString();
-        Assert.That(output, Is.EqualTo("Subtitle synchronized successfully\n"));
+        Assert.That(output, Is.EqualTo("Encoding: utf-8\n"));
     }
 }

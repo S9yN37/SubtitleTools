@@ -6,7 +6,7 @@ public class SubRip : ISubtitleFormat
     private static readonly Regex TimeComponentPattern = SubRipParser.TimeComponentRegex();
     public string Name => "SubRip";
 
-    public Subtitle Read(string file, string[] lines)
+    public Subtitle Read(string file, IReadOnlyList<string> lines)
     {
         var subtitle = new Subtitle { Type = Name, OriginalFile = file };
 
@@ -58,7 +58,7 @@ public class SubRip : ISubtitleFormat
         return lines;
     }
 
-    private (bool Success, TimeSpan Start, TimeSpan End) ParseTimestampRange(string input)
+    private static (bool Success, TimeSpan Start, TimeSpan End) ParseTimestampRange(string input)
     {
         var match = TimestampPattern.Match(input);
 
@@ -71,7 +71,7 @@ public class SubRip : ISubtitleFormat
         return (true, startTime, endTime);
     }
 
-    private TimeSpan ParseSrtTimeToTimeSpan(string srtTime)
+    private static TimeSpan ParseSrtTimeToTimeSpan(string srtTime)
     {
         var match = TimeComponentPattern.Match(srtTime);
 

@@ -17,6 +17,7 @@ public static class ServiceExtensions
     public static void AddSubtitleToolsCommands(this IServiceCollection services)
     {
         // Register command(s)
+        services.AddTransient<DetectEncodingCommand>();
         services.AddTransient<FixDiacriticsCommand>();
         services.AddTransient<SynchronizeCommand>();
         services.AddTransient<SynchronizePartialCommand>();

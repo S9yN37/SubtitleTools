@@ -2,10 +2,11 @@ namespace SubtitleTools.Services.Interfaces;
 
 public interface IFileSystem
 {
-    Task<string> ReadContent(string fileName);
-    Task<string[]> ReadLines(string fileName);
-    Task WriteContent(string fileName, string content);
-    Task WriteLines(string fileName, IReadOnlyCollection<string> lines);
-    bool FileExists(string fileName);
-    void Copy(string sourceFile, string destinationFile);
+    bool FileExists(string file);
+    Task<Encoding> GetFileEncoding(string file);
+    Task<string> ReadContent(string file);
+    Task<IReadOnlyList<string>> ReadLines(string file);
+    Task WriteContent(string file, string content);
+    Task WriteLines(string file, IReadOnlyCollection<string> lines);
+    void Backup(string file);
 }

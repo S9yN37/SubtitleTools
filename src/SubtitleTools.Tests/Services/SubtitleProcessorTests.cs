@@ -72,7 +72,7 @@ public class SubtitleProcessorTests
         await _service.Save(subtitle, file);
 
         // Assert
-        _fileSystem.Received(1).Copy(subtitle.OriginalFile, Arg.Is<string>(f => f.Contains(subtitle.OriginalFile)));
+        _fileSystem.Received(1).Backup(subtitle.OriginalFile);
         var expectedFile = string.IsNullOrEmpty(file) ? subtitle.OriginalFile : file;
         var expectedLines = new[] { "1", "00:00:01,000 --> 00:00:02,000", "Subtitle Line", "" };
         await _fileSystem.Received(1).WriteLines(expectedFile, Arg.Is<IReadOnlyCollection<string>>(c => c.SequenceEqual(expectedLines)));

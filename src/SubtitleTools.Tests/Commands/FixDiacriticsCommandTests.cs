@@ -24,7 +24,7 @@ public class FixDiacriticsCommandTests
         _options.Value.Returns(new Settings { AutoCreateBackup = true });
         services.AddSingleton(_options);
 
-        var provider = services.BuildServiceProvider();
+        services.BuildServiceProvider();
 
         _console = new FakeInMemoryConsole();
     }
@@ -56,7 +56,7 @@ public class FixDiacriticsCommandTests
     {
         // Arrange
         _fileSystem.FileExists("Subtitle.srt").Returns(true);
-        _fileSystem.ReadContent("Subtitle.srt").Returns("Ã ã ª Ş º ş Þ Ţ þ ţ");
+        _fileSystem.ReadContent("Subtitle.srt").Returns("Ã ã Ä ä ª Ş º ş Þ Ţ þ ţ");
 
         var command = new FixDiacriticsCommand(_fileSystem, _options) { FileName = "Subtitle.srt" };
 
@@ -64,8 +64,8 @@ public class FixDiacriticsCommandTests
         await command.ExecuteAsync(_console);
 
         // Assert
-        _fileSystem.Received(1).Copy(command.FileName, Arg.Is<string>(f => f.Contains(command.FileName)));
-        const string expected = "Ă ă Ș Ș ș ș Ț Ț ț ț";
+        _fileSystem.Received(1).Backup(command.FileName);
+        const string expected = "Ă ă Ă ă Ș Ș ș ș Ț Ț ț ț";
         await _fileSystem.Received(1).WriteContent(command.FileName, Arg.Is<string>(c => c == expected));
         var output = _console.ReadOutputString();
         Assert.That(output, Is.EqualTo("Diacritics fixed successfully\n"));
