@@ -39,7 +39,7 @@ jobs:
 
       - name: Publish framework-dependent app (Linux)
         if: startsWith(matrix.runtime, 'linux')
-        run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained false -o ../publish/${{ matrix.runtime }}
+        run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -o ../publish/${{ matrix.runtime }}
         working-directory: ./src
 
       - name: Ad-hoc sign macOS binaries
