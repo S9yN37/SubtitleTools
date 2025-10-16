@@ -42,6 +42,15 @@ jobs:
         run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -o ../publish/${{ matrix.runtime }}
         working-directory: ./src
 
+      - name: Copy LICENSE to publish directory
+        run: |
+          if [ -f LICENSE ]; then
+            cp LICENSE ./publish/${{ matrix.runtime }}/
+            echo "LICENSE file copied to publish directory"
+          else
+            echo "WARNING: LICENSE file not found in root directory"
+          fi
+
       - name: Ad-hoc sign macOS binaries
         if: startsWith(matrix.runtime, 'osx')
         run: |
