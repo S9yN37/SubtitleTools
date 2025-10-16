@@ -12,6 +12,9 @@ A command-line tool for managing and synchronizing subtitle files.
 # MacOS
 brew tap S9yN37/tap
 brew install SubtitleTools
+
+# Arch Linux
+yay -S subtitletools-bin
 ```
 
 ## Examples
