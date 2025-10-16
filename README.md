@@ -12,6 +12,9 @@ A command-line tool for managing and synchronizing subtitle files.
 # MacOS
 brew tap S9yN37/tap
 brew install SubtitleTools
+
+# Download
+[Releases](https://github.com/S9yN37/SubtitleTools/releases)
 ```
 
 ## Examples

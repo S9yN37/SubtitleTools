@@ -18,7 +18,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        runtime: [ osx-arm64, osx-x64, linux-x64, linux-arm64, win-x64 ]  # Build for multiple OS runtimes
+        runtime: [ osx-arm64, osx-x64, linux-arm64, linux-x64, win-arm64, win-x64 ]  # Build for multiple OS runtimes
     steps:
       - name: Checkout repository           # Pull repo code
         uses: actions/checkout@v4
@@ -32,8 +32,14 @@ jobs:
         run: dotnet restore       
         working-directory: ./src 
 
-      - name: Publish self-contained app    # Publishes app as a self-contained, single-file executable per runtime
+      - name: Publish self-contained app (macOS/Windows)
+        if: startsWith(matrix.runtime, 'osx') || startsWith(matrix.runtime, 'win')
         run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ../publish/${{ matrix.runtime }}
+        working-directory: ./src
+
+      - name: Publish framework-dependent app (Linux)
+        if: startsWith(matrix.runtime, 'linux')
+        run: dotnet publish ./SubtitleTools/SubtitleTools.csproj -c Release -r ${{ matrix.runtime }} --self-contained false -o ../publish/${{ matrix.runtime }}
         working-directory: ./src
 
       - name: Ad-hoc sign macOS binaries
