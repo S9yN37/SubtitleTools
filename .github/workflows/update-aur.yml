@@ -89,6 +89,7 @@ jobs:
             cd /build &&
             sudo -u builder makepkg --printsrcinfo > .SRCINFO
           "
+          sudo chown -R $USER:$USER aur-repository
           
       - name: Commit and push to AUR
         run: |
