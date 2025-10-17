@@ -56,12 +56,14 @@ jobs:
           echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/aur
           chmod 600 ~/.ssh/aur
           
+          # Add AUR host key to known_hosts
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          
           # Configure SSH to use the key for AUR
           cat >> ~/.ssh/config << EOF
           Host aur.archlinux.org
             IdentityFile ~/.ssh/aur
             User aur
-            StrictHostKeyChecking no
           EOF
           
           # Clone AUR repository
@@ -80,7 +82,13 @@ jobs:
           
       - name: Generate .SRCINFO
         run: |
-          docker run --rm -v "$PWD/aur-repository:/build" archlinux:latest sh -c "cd /build && pacman -Sy --noconfirm binutils fakeroot && makepkg --printsrcinfo > .SRCINFO"
+          docker run --rm -v "$PWD/aur-repository:/build" archlinux:latest sh -c "
+            pacman -Sy --noconfirm binutils fakeroot sudo &&
+            useradd -m builder &&
+            chown -R builder:builder /build &&
+            cd /build &&
+            sudo -u builder makepkg --printsrcinfo > .SRCINFO
+          "
           
       - name: Commit and push to AUR
         run: |
