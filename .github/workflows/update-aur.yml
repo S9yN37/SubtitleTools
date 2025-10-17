@@ -1,0 +1,96 @@
+name: Update AUR Package
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build & Release (.NET)"]
+    types:
+      - completed
+      
+jobs:
+  update-aur:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get release info
+        id: release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let release;
+            if (context.payload.release) {
+              // Triggered by "release"
+              release = context.payload.release;
+            } else {
+              // Triggered by "workflow_dispatch" or "workflow_run"
+              const latest = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              release = latest.data;
+            }
+            const version = release.tag_name.replace(/^v/, '');
+            core.setOutput("version", version);
+            core.setOutput("tag", release.tag_name);
+            core.setOutput("url_x64", release.assets.find(a => a.name.includes("linux-x64")).browser_download_url);
+            core.setOutput("url_arm64", release.assets.find(a => a.name.includes("linux-arm64")).browser_download_url);
+            
+      - name: Download & compute sha256 (x64)
+        run: |
+          curl -L "${{ steps.release.outputs.url_x64 }}" -o x64.tar.gz
+          echo "sha256_x64=$(sha256sum x64.tar.gz | cut -d ' ' -f1)" >> $GITHUB_ENV
+          
+      - name: Download & compute sha256 (arm64)
+        run: |
+          curl -L "${{ steps.release.outputs.url_arm64 }}" -o arm64.tar.gz
+          echo "sha256_arm64=$(sha256sum arm64.tar.gz | cut -d ' ' -f1)" >> $GITHUB_ENV
+          
+      - name: Clone AUR repository subtitletools-bin
+        run: |
+          # Configure git
+          git config --global user.name "S9yN37"
+          git config --global user.email "aur@archlinux.org"
+          
+          # Setup SSH key for AUR
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          
+          # Configure SSH to use the key for AUR
+          cat >> ~/.ssh/config << EOF
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur
+            User aur
+            StrictHostKeyChecking no
+          EOF
+          
+          # Clone AUR repository
+          git clone ssh://aur@aur.archlinux.org/subtitletools-bin.git aur-repository
+          
+      - name: Update PKGBUILD
+        run: |
+          cd aur-repository
+          VERSION="${{ steps.release.outputs.version }}"
+          
+          # Update PKGBUILD
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          sed -i "s/^sha256sums_x86_64=.*/sha256sums_x86_64=('${sha256_x64}')/" PKGBUILD
+          sed -i "s/^sha256sums_aarch64=.*/sha256sums_aarch64=('${sha256_arm64}')/" PKGBUILD
+          
+      - name: Generate .SRCINFO
+        run: |
+          docker run --rm -v "$PWD/aur-repository:/build" archlinux:latest sh -c "cd /build && pacman -Sy --noconfirm binutils fakeroot && makepkg --printsrcinfo > .SRCINFO"
+          
+      - name: Commit and push to AUR
+        run: |
+          cd aur-repository
+          VERSION="${{ steps.release.outputs.version }}"
+          
+          git add PKGBUILD .SRCINFO
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update to version ${VERSION}"
+            git push origin master
+          fi
