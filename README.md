@@ -26,11 +26,11 @@ SubtitleTools -h
 # Get help for synchronize command:
 SubtitleTools s --help
 
+# Convert subtitles to UTF-8:
+SubtitleTools c -f Subtitle.srt
+
 # Detect encoding:
 SubtitleTools de -f Subtitle.srt
-
-# Fix diacritics in subtitle files:
-SubtitleTools fd -f Subtitle.srt
 
 # Synchronize subtitles - shift subtitle 1.5 seconds backward
 SubtitleTools s -o -1.5 -f Subtitle.srt
