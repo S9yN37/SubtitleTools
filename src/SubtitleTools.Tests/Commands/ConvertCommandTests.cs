@@ -1,7 +1,9 @@
+using System.Text;
+
 namespace SubtitleTools.Tests.Commands;
 
 [Category("Functional")]
-public class FixDiacriticsCommandTests
+public class ConvertCommandTests
 {
     private FakeInMemoryConsole _console;
     private IFileSystem _fileSystem;
@@ -10,6 +12,7 @@ public class FixDiacriticsCommandTests
     [SetUp]
     public void Setup()
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         var services = new ServiceCollection();
         services.AddSubtitleToolsServices();
         services.AddSubtitleToolsFormatServices();
@@ -40,7 +43,7 @@ public class FixDiacriticsCommandTests
     {
         // Arrange
         _fileSystem.FileExists("NotFound.srt").Returns(false);
-        var command = new FixDiacriticsCommand(_fileSystem, _options) { FileName = "NotFound.srt" };
+        var command = new ConvertCommand(_fileSystem, _options) { FileName = "NotFound.srt" };
 
         // Act
         await command.ExecuteAsync(_console);
@@ -54,20 +57,31 @@ public class FixDiacriticsCommandTests
     [Test]
     public async Task Execute_Successfully()
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         // Arrange
+        const string content = "Ă ă Â â Î î Ș ș Ț ț";
         _fileSystem.FileExists("Subtitle.srt").Returns(true);
-        _fileSystem.ReadContent("Subtitle.srt").Returns("Ã ã Ä ä ª Ş º ş Þ Ţ þ ţ");
+        _fileSystem.ReadContent("Subtitle.srt").Returns(content);
 
-        var command = new FixDiacriticsCommand(_fileSystem, _options) { FileName = "Subtitle.srt" };
+        var command = new ConvertCommand(_fileSystem, _options)
+        {
+            FileName = "Subtitle.srt"
+        };
 
         // Act
         await command.ExecuteAsync(_console);
 
         // Assert
         _fileSystem.Received(1).Backup(command.FileName);
-        const string expected = "Ă ă Ă ă Ș Ș ș ș Ț Ț ț ț";
-        await _fileSystem.Received(1).WriteContent(command.FileName, Arg.Is<string>(c => c == expected));
+
+        const string expected = "Ă ă Â â Î î Ș ș Ț ț";
+        await _fileSystem.Received(1)
+            .WriteContent(
+                command.FileName,
+                Arg.Is<string>(c => c == expected)
+            );
+
         var output = _console.ReadOutputString();
-        Assert.That(output, Is.EqualTo("Diacritics fixed successfully\n"));
+        Assert.That(output, Is.EqualTo("Successfully converted to UTF-8\n"));
     }
 }

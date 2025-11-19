@@ -41,7 +41,7 @@ public class ServiceExtensionsTests
             var commands = new[]
             {
                 typeof(DetectEncodingCommand),
-                typeof(FixDiacriticsCommand),
+                typeof(ConvertCommand),
                 typeof(SynchronizeCommand),
                 typeof(SynchronizePartialCommand),
                 typeof(VisualSyncCommand)

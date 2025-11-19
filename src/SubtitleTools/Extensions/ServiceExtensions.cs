@@ -18,7 +18,7 @@ public static class ServiceExtensions
     {
         // Register command(s)
         services.AddTransient<DetectEncodingCommand>();
-        services.AddTransient<FixDiacriticsCommand>();
+        services.AddTransient<ConvertCommand>();
         services.AddTransient<SynchronizeCommand>();
         services.AddTransient<SynchronizePartialCommand>();
         services.AddTransient<VisualSyncCommand>();
