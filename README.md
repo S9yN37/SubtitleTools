@@ -67,7 +67,7 @@ SubtitleTools [command] [...]
 | Command | Description |
 |---------|-------------|
 | `de` | Detect Encoding |
-| `fd` | Fix Diacritics |
+| `c` | Convert to UTF-9 |
 | `s` | Synchronize |
 | `sp` | Synchronize Partial |
 | `vs` | Visual Sync |
