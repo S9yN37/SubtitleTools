@@ -40,7 +40,7 @@ public class SubtitleProcessor(
 
     public void Sync(Subtitle subtitle, double seconds)
     {
-        if (seconds < 0.001) return;
+        if (Math.Abs(seconds) < 0.001) return;
         foreach (var paragraph in subtitle.Paragraphs)
             paragraph.Sync(seconds);
     }
