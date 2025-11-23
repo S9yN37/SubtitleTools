@@ -42,10 +42,10 @@ SubtitleTools s -o -1.5 -f Subtitle.srt
 SubtitleTools sp -s 00:00:30+1.3 -s 00:01:00-2 -f Subtitle.srt
 
 # Visual Sync - using reference points from movie timing:
-# -fp: first paragraph number (3) - reference point near start
-# -ft: actual time when first paragraph appears in movie (00:00:31.321)
-# -lp: last paragraph number (731) - reference point near end
-# -lt: actual time when last paragraph appears in movie (01:45:31.123)
+# --fp: first paragraph number (3) - reference point near start
+# --ft: actual time when first paragraph appears in movie (00:00:31.321)
+# --lp: last paragraph number (731) - reference point near end
+# --lt: actual time when last paragraph appears in movie (01:45:31.123)
 # Calculates sync adjustment based on these two reference points
 SubtitleTools vs --fp 3 --ft 00:00:31.321 --lp 731 --lt 01:45:31.123 -f Subtitle.srt
 ```
